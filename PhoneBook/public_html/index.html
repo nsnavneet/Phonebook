@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phone Number Book</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://login2explore.com/jpdb/resources/js/0.0.3/jpdb-commons.js"></script>
+    <script src="https://login2explore.com/jpdb/resources/js/0.0.3/jpdb-client.js"></script>
+</head>
+<body>
+    <h1>Phone Number Book</h1>
+    <form>
+        <label>Name:</label>
+        <input type="text" name="name" required>
+        <br>
+        <label>Phone Number:</label>
+        <input type="text" name="phoneNumber" required>
+        <br>
+        <button type="submit">Add</button>
+    </form>
+    <ul id="phoneList"></ul>
+
+    <script src="phonebook.js"></script>
+    <script>
+        $(document).ready(function() {
+
+    // create JPDB object
+    var db = new JPDB.db("phonebook", "https://login2explore.com", "ravindra", "ravindra");
+
+    // handle form submit event
+    $('form').submit(function(event) {
+        event.preventDefault(); // prevent form from submitting
+
+        // get form values
+        var name = $('input[name="name"]').val();
+        var phoneNumber = $('input[name="phoneNumber"]').val();
+
+        // create JSON data object
+        var data = {
+            "name": name,
+            "phoneNumber": phoneNumber
+        };
+
+        // insert data into JPDB
+        db.insert({
+            "dbName": "phonebook",
+            "rel": "PhoneNumbers",
+            "jsonStr": JSON.stringify(data)
+        }, function(response) {
+            console.log(response);
+
+            // clear form inputs
+            $('input[name="name"]').val("");
+            $('input[name="phoneNumber"]').val("");
+
+            // reload phone number list
+            getPhoneNumbers();
+        });
+    });
+
+    // function to retrieve phone numbers from JPDB
+    function getPhoneNumbers() {
+        db.select({
+            "dbName": "phonebook",
+            "rel": "PhoneNumbers"
+        }, function(response) {
+            console.log(response);
+
+            // display phone numbers in list
+            var phoneList = $('#phoneList');
+            phoneList.empty(); // clear existing list items
+            for (var i = 0; i < response.length; i++) {
+                var item = $('<li>').text(response[i].name + ' - ' + response[i].phoneNumber);
+                phoneList.append(item);
+            }
+        });
+    }
+
+    // call function to retrieve phone numbers when page loads
+    getPhoneNumbers();
+
+});
+
+        </script>
+</body>
+</html>
